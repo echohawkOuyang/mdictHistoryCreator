@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="cn.echohawk.service.dic.mapper.EnglishStudyMapper">
+
+    <insert id="save" parameterType="cn.echohawk.EnglishStudy">
+        INSERT INTO ENGLISH_STUDY
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="word!=null and word!=''">WORD,</if>
+            <if test="indexId!=null and indexId!=''">INDEX_ID,</if>
+            <if test="createTime!=null ">CREATETIME,</if>
+            <if test="updateTime!=null ">UPDATETIME,</if>
+            <if test="frequency!=null and frequency!=''">FREQUENCY,</if>
+            <if test="studyFrequency!=null and studyFrequency!=''">STUDY_FREQUENCY,</if>
+            <if test="lastStudyDay!=null and lastStudyDay!=''">LAST_STUDY_DAY,</if>
+            <if test="originalWord!=null and originalWord!=''">ORIGINAL_WORD,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides="," >
+            <if test="word!=null and word!=''">#{word,jdbcType=VARCHAR},</if>
+            <if test="indexId!=null and indexId!=''">#{indexId,jdbcType=VARCHAR},</if>
+            <if test="createTime!=null ">#{createTime,jdbcType=TIMESTAMP},</if>
+            <if test="updateTime!=null ">#{updateTime,jdbcType=TIMESTAMP},</if>
+            <if test="frequency!=null and frequency!=''">#{frequency,jdbcType=INTEGER},</if>
+            <if test="studyFrequency!=null and studyFrequency!=''">#{studyFrequency,jdbcType=INTEGER},</if>
+            <if test="lastStudyDay!=null and lastStudyDay!=''">#{lastStudyDay,jdbcType=VARCHAR},</if>
+            <if test="originalWord!=null and originalWord!=''">#{originalWord,jdbcType=VARCHAR},</if>
+        </trim>
+    </insert>
+
+    <update id="updateByPk" parameterType="cn.echohawk.EnglishStudy">
+        UPDATE ENGLISH_STUDY
+        <set>
+            <if test="indexId!=null and indexId!=''">INDEX_ID = #{indexId,jdbcType=VARCHAR},</if>
+            <if test="createTime!=null ">CREATETIME = #{createTime,jdbcType=TIMESTAMP},</if>
+            <if test="updateTime!=null ">UPDATETIME = #{updateTime,jdbcType=TIMESTAMP},</if>
+            <if test="frequency!=null and frequency!=''">FREQUENCY = #{frequency,jdbcType=INTEGER},</if>
+            <if test="studyFrequency!=null and studyFrequency!=''">STUDY_FREQUENCY = #{studyFrequency,jdbcType=INTEGER},</if>
+            <if test="lastStudyDay!=null and lastStudyDay!=''">LAST_STUDY_DAY = #{lastStudyDay,jdbcType=VARCHAR},</if>
+        </set>
+        <where>
+            WORD = #{word,jdbcType=VARCHAR}
+        </where>
+    </update>
+
+    <update id="batchUpdateByPk" parameterType="cn.echohawk.EnglishStudy">
+        UPDATE ENGLISH_STUDY
+        <set>
+            <trim prefix="STUDY_FREQUENCY =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.studyFrequency!=null">
+                        when WORD=#{i.word,jdbcType=VARCHAR} then #{i.studyFrequency,jdbcType=INTEGER}
+                    </if>
+                </foreach>
+            </trim>
+
+            <trim prefix="LAST_STUDY_DAY =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.lastStudyDay!=null and i.lastStudyDay!=''">
+                        when WORD=#{i.word,jdbcType=VARCHAR} then #{i.lastStudyDay,jdbcType=VARCHAR}
+                    </if>
+                </foreach>
+            </trim>
+            UPDATETIME = sysdate
+        </set>
+        <where>
+            <foreach collection="list" separator="or" item="i" index="index">
+                <if test="i.word!=null and i.word!=''">
+                    WORD = #{i.word,jdbcType=VARCHAR}
+                </if>
+            </foreach>
+        </where>
+    </update>
+
+    <resultMap id="BaseResultMap" type="cn.echohawk.EnglishStudy">
+        <result property="word" jdbcType="VARCHAR" column="WORD"/>
+        <result property="indexId" jdbcType="VARCHAR" column="INDEX_ID"/>
+        <result property="createTime" jdbcType="TIMESTAMP" column="CREATETIME"/>
+        <result property="updateTime" jdbcType="TIMESTAMP" column="UPDATETIME"/>
+        <result property="frequency" jdbcType="INTEGER" column="FREQUENCY"/>
+        <result property="studyFrequency" jdbcType="INTEGER" column="STUDY_FREQUENCY"/>
+        <result property="lastStudyDay" jdbcType="VARCHAR" column="LAST_STUDY_DAY"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+		WORD,INDEX_ID,CREATETIME,UPDATETIME,FREQUENCY,STUDY_FREQUENCY,LAST_STUDY_DAY
+	</sql>
+
+    <select id="findByPk" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumnList" />
+        FROM ENGLISH_STUDY
+        <where>
+            WORD = #{word,jdbcType=VARCHAR}
+        </where>
+    </select>
+
+
+    <select id="findReviewWord" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT WORD,STUDY_FREQUENCY,LAST_STUDY_DAY,INDEX_ID
+        FROM ENGLISH_STUDY
+        <where>
+            LAST_STUDY_DAY &lt; #{dateStr, jdbcType=VARCHAR} AND INDEX_ID IS NOT NULL
+        </where>
+    </select>
+
+    <!--  &lt;!&ndash; 按对象查询 &ndash;&gt;
+     <select id="queryByCmmtAreaInfo" parameterType="yspay.bcs.boss.entity.CmmtAreaInfo" resultMap="BaseResultMap">
+         SELECT <include refid="BaseColumnList" />
+         FROM CMMT_AREA_INFO
+         <where>
+             1=1
+             <if test="cityCd!=null and cityCd!=''">AND CITY_CD = #{cityCd,jdbcType=VARCHAR}</if>
+             <if test="cityNm!=null and cityNm!=''">AND CITY_NM = #{cityNm,jdbcType=VARCHAR}</if>
+             <if test="parentCityCd!=null and parentCityCd!=''">AND PARENT_CITY_CD = #{parentCityCd,jdbcType=VARCHAR}</if>
+             <if test="cityPyHead!=null and cityPyHead!=''">AND CITY_PY_HEAD = #{cityPyHead,jdbcType=VARCHAR}</if>
+             <if test="cityPy!=null and cityPy!=''">AND CITY_PY = #{cityPy,jdbcType=VARCHAR}</if>
+             <if test="areaCode!=null and areaCode!=''">AND AREA_CODE = #{areaCode,jdbcType=VARCHAR}</if>
+             <if test="areaLevel!=null">AND AREA_LEVEL = #{areaLevel,jdbcType=DECIMAL}</if>
+             <if test="isAble!=null and isAble!=''">AND IS_ABLE = #{isAble,jdbcType=VARCHAR}</if>
+             <if test="remark!=null and remark!=''">AND REMARK = #{remark,jdbcType=VARCHAR}</if>
+             <if test="acqInsIdCd!=null and acqInsIdCd!=''">AND ACQ_INS_ID_CD = #{acqInsIdCd,jdbcType=VARCHAR}</if>
+         </where>
+     </select>
+
+     &lt;!&ndash; &ndash;&gt;
+     <select id="getAllAreaInfo" resultType="yspay.bcs.base.entity.CmmtAreaInfoSimple">
+         SELECT CITY_CD AS "value", CITY_NM AS "name", PARENT_CITY_CD AS "parent"
+           FROM CMMT_AREA_INFO
+          WHERE CITY_NM NOT LIKE '%直联%'
+          ORDER BY CITY_CD
+     </select>
+
+     <select id="countBankCode" parameterType="java.lang.String" resultType="java.lang.Long">
+         SELECT COUNT(*) FROM BANK_CODE T WHERE T.CITYCODE= #{cityCode} AND T.BANKTYPE=#{bankType}
+     </select>
+ -->
+
+
+</mapper>
